@@ -86,7 +86,7 @@ func add_single_square(_heights, sq_y : int, sq_x : int, _mt_pxl : float, _offse
 		var y_uv_pos := y_heights_index/heights_sq_y_size
 		var h_y_m_size := (h_y) * (sq_heights_x_size)
 		var h_y_m_size_m1 := (h_y-1) * (sq_heights_x_size)
-		var h_y_m_size_m2 := (h_y-2) * (sq_heights_x_size)
+#		var h_y_m_size_m2 := (h_y-2) * (sq_heights_x_size)
 		for h_x in range(0,sq_heights_x_size):
 			x_height_index = x_heights_start + h_x
 
@@ -106,65 +106,33 @@ func add_single_square(_heights, sq_y : int, sq_x : int, _mt_pxl : float, _offse
 				# 1				1-2
 				# |\	then	 \|
 				# 3-2	    	  3
+				var p_m11 = h_y_m_size_m1 + h_x-1
+				var p_m10 = h_y_m_size_m1 + h_x
+				var p_m01 = h_y_m_size + h_x-1
+				var p_m00 = h_y_m_size + h_x
 				if (h_x % 2 != 0 && h_y % 2 != 0) \
 					|| (h_x % 2 == 0 && h_y % 2 == 0):
-					sq_indices.append(h_y_m_size_m1 + h_x-1)
-					sq_indices.append(h_y_m_size_m1 + h_x)
-					sq_indices.append(h_y_m_size + h_x-1)
-					sq_indices.append(h_y_m_size + h_x-1)
-					sq_indices.append(h_y_m_size_m1 + h_x)
-					sq_indices.append(h_y_m_size + h_x)
+					sq_indices.append(p_m11)
+					sq_indices.append(p_m10)
+					sq_indices.append(p_m01)
+					sq_indices.append(p_m01)
+					sq_indices.append(p_m10)
+					sq_indices.append(p_m00)
 				else:
-					sq_indices.append(h_y_m_size_m1 + h_x-1)
-					sq_indices.append(h_y_m_size + h_x)
-					sq_indices.append(h_y_m_size + h_x-1)
-					sq_indices.append(h_y_m_size_m1 + h_x-1)
-					sq_indices.append(h_y_m_size_m1 + h_x)
-					sq_indices.append(h_y_m_size + h_x)
+					sq_indices.append(p_m11)
+					sq_indices.append(p_m00)
+					sq_indices.append(p_m01)
+					sq_indices.append(p_m11)
+					sq_indices.append(p_m10)
+					sq_indices.append(p_m00)
 
 				# Let's try to use a proper normal calculation:
 				# as we can calculate by the current vertex height plus
 				# the other 4 surrounding heights, regardless vertex index
 				var norm_x := Plane(sq_heights[index],
 									  sq_heights[index-1],
-									  sq_heights[h_y_m_size_m1 + h_x]).normal
+									  sq_heights[p_m10]).normal
 				var norm_xp := norm_x
-
-				var norm_a := norm_x
-				var norm_b := norm_x
-				var norm_c := norm_x
-				var norm_d := norm_x
-
-				if h_x > 1 && h_y > 1:
-					norm_a = Plane(sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size_m1 + h_x-2],
-									  sq_heights[h_y_m_size_m2+ h_x-1]).normal
-					norm_b = Plane(sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size_m2 + h_x-1],
-									  sq_heights[h_y_m_size_m1 + h_x]).normal
-					norm_c = Plane(sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size_m1 + h_x],
-									  sq_heights[index-1]).normal
-					norm_d = Plane(sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size + h_x-1],
-									  sq_heights[h_y_m_size_m1 + h_x-2]).normal
-					norm_xp = (norm_a + norm_b + norm_c + norm_d).normalized()
-				elif h_x > 1 && h_y == 1:
-					norm_a = Plane(sq_heights[index-1],
-									  sq_heights[index-2],
-									  sq_heights[h_y_m_size_m1 + h_x-1]).normal
-					norm_b = Plane(sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size_m1 + h_x],
-									  sq_heights[index-1]).normal
-					norm_xp = (norm_a + norm_b).normalized()
-				elif h_x == 1 && h_y > 1:
-					norm_a = Plane(sq_heights[h_y_m_size_m1 + h_x],
-									  sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size_m2 + h_x-1]).normal
-					norm_b = Plane(sq_heights[h_y_m_size_m1 + h_x-1],
-									  sq_heights[h_y_m_size_m1 + h_x],
-									  sq_heights[index-1]).normal
-					norm_xp = (norm_a + norm_b).normalized()
 
 				# here we manage normals depending on the case:
 				# top left corner
@@ -196,7 +164,7 @@ func add_single_square(_heights, sq_y : int, sq_x : int, _mt_pxl : float, _offse
 				# all other cases
 				else:
 					sq_normals[index] = norm_x
-					sq_normals[h_y_m_size_m1 + h_x-1] = norm_xp
+					sq_normals[p_m11] = norm_xp
 
 			index += 1
 	return {heights=sq_heights, normals=sq_normals, indices=sq_indices, uv=sq_uvs}

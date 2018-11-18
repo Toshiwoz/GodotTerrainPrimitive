@@ -16,9 +16,11 @@ func _ready():
 	pass
 
 func _set_divide_by(_newval):
+	if is_nan(_newval):
+		divide_by = 4
 	if divide_by != _newval:
 		divide_by = _newval
-		print("Divided by %d" % divide_by)
+	print("Divided by %d" % divide_by)
 		
 func _get_divide_by():
 	return divide_by
@@ -215,7 +217,7 @@ func add_single_square(sq_y : int, sq_x : int, _mt_pxl : float, _offset := 0.0):
 #				sq_normals[p_m01] = (sq_normals[p_m01]+norm_x+norm_xa).normalized()
 #				sq_normals[p_m10] = (sq_normals[p_m10]+norm_x+norm_xa).normalized()
 
-				norm_x = calculate_normal_from_Heights8(_mt_pxl, y_heights_index, x_height_index, py1, px1)
+				norm_x = calculate_normal_from_Heightsm(_mt_pxl, y_heights_index, x_height_index, py1, px1)
 				
 				# here we manage normals depending on the case:
 				# top left corner
@@ -285,19 +287,28 @@ func calculate_normal_from_Heights8(_mt_pxl, _y, _x, _py1, _px1) -> Vector3:
 					heights_array[_y - 1][_x] - heights_array[_y + _py1][_x]
 					)
 	return (t+x).normalized()
-	
+
+var pi_vector = Vector3(0.0,PI,0.0)
 func calculate_normal_from_Heightsm(_mt_pxl, _y, _x, _py1, _px1) -> Vector3:
 	var x = Vector3(
-					(heights_array[_y - 1][_x - 1] - heights_array[_y + _py1][_x + _px1])/heights_array[_y][_x],
-					_mt_pxl * 2.0,
-					(heights_array[_y - 1][_x + _px1] - heights_array[_y + _py1][_x - 1])/heights_array[_y][_x]
+					atan(heights_array[_y - 1][_x - 1] - heights_array[_y + _py1][_x + _px1]),
+					0.0,
+					atan(heights_array[_y - 1][_x + _px1] - heights_array[_y + _py1][_x - 1])
 					)
 	var t = Vector3(
-					(heights_array[_y][_x - 1] - heights_array[_y][_x + _px1])/heights_array[_y][_x],
-					_mt_pxl * 2.0,
-					(heights_array[_y - 1][_x] - heights_array[_y + _py1][_x])/heights_array[_y][_x]
+					atan(heights_array[_y][_x - 1] - heights_array[_y][_x + _px1]),
+					0.0,
+					atan(heights_array[_y - 1][_x] - heights_array[_y + _py1][_x])
 					)
-	return ((t+x)).normalized()
+	return ((pi_vector+t+x)).normalized()
+	
+func calculate_normal_from_Heightsr(_mt_pxl, _y, _x, _py1, _px1) -> Vector3:
+	pi_vector = pi_vector.rotated(Vector3(0.0,0.0,1.0), atan(heights_array[_y - 1][_x - 1] - heights_array[_y + _py1][_x + _px1])/PI)
+	pi_vector = pi_vector.rotated(Vector3(1.0,0.0,0.0), atan(heights_array[_y - 1][_x + _px1] - heights_array[_y + _py1][_x - 1])/PI)
+#	pi_vector = pi_vector.rotated(Vector3(0.0,1.0,0.0), atan(heights_array[_y][_x - 1] - heights_array[_y][_x + _px1]))
+#	pi_vector = pi_vector.rotated(Vector3(1.0,0.0,0.0), atan(heights_array[_y - 1][_x] - heights_array[_y + _py1][_x]))
+
+	return pi_vector.normalized()
 	
 func calculate_normal_from_Heightss(_mt_pxl, _y, _x, _py1, _px1) -> Vector3:
 	var l = Vector3(-_mt_pxl, heights_array[_y][_x-1] - heights_array[_y][_x], 0)
@@ -308,15 +319,15 @@ func calculate_normal_from_Heightss(_mt_pxl, _y, _x, _py1, _px1) -> Vector3:
 	var br = Vector3(_mt_pxl, heights_array[_y+_py1][_x+_px1] - heights_array[_y][_x], _mt_pxl)
 	var b = Vector3(0, heights_array[_y+_py1][_x] - heights_array[_y][_x], _mt_pxl)
 	var bl = Vector3(-_mt_pxl, heights_array[_y+_py1][_x-1] - heights_array[_y][_x], _mt_pxl)
-	var n1 = l.cross(tl)
-	var n2 = tl.cross(t)
-	var n3 = t.cross(tr)
-	var n4 = tr.cross(r)
-	var n5 = r.cross(br)
-	var n6 = br.cross(b)
-	var n7 = b.cross(bl)
-	var n8 = bl.cross(l)
-	return -(n1+n2+n3+n4+n5+n6+n7+n8).normalized()
+	var n1 = tl.cross(t)
+	var n2 = t.cross(tl)
+	var n3 = tr.cross(t)
+	var n4 = r.cross(tr)
+	var n5 = br.cross(r)
+	var n6 = b.cross(br)
+	var n7 = bl.cross(b)
+	var n8 = l.cross(bl)
+	return (n1+n2+n3+n4+n5+n6+n7+n8).normalized()
 	
 func get_vertex_from_yx_coordinates(_sqsz, _y, _x):
 	return _sqsz.vertices[_y * _sqsz.x + _x]

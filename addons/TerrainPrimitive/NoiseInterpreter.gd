@@ -17,7 +17,7 @@ func GenerateHeightMap(_hm_texture : Texture):
 		var altitude := 0.0
 		hm.resize(heigth)
 		for y in rangeY:
-			var x_arr := Array()
+			var x_arr := PoolRealArray()
 			x_arr.resize(width)
 			for x in rangeX:
 				pxl = TerrainImage.get_pixel(x, y)
